@@ -77,6 +77,14 @@ if ! command -v iw &>/dev/null; then
 fi
 ok "iw $(iw --version 2>/dev/null | awk '{print $NF}' || echo 'present')"
 
+# -- python3-systemd (for sd_notify) --
+if python3 -c "import systemd.daemon" &>/dev/null; then
+    ok "python3-systemd available"
+else
+    info "Installing python3-systemd for systemd integration..."
+    apt-get install -y python3-systemd &>/dev/null || warn "python3-systemd not available — sd_notify will be skipped."
+fi
+
 # ============================================================================
 # Step 3: Detect monitor-mode capable WiFi interfaces
 # ============================================================================
@@ -181,7 +189,7 @@ if [[ -d "$DPMB_VENV" ]]; then
     info "Re-using existing venv. Delete and re-run to recreate."
 else
     mkdir -p "$(dirname "$DPMB_VENV")"
-    python3 -m venv "$DPMB_VENV"
+    python3 -m venv --system-site-packages "$DPMB_VENV"
     ok "Created venv at ${DPMB_VENV}"
 fi
 
@@ -197,7 +205,7 @@ ok "pip upgraded inside venv."
 header "Installing DPMB package into venv"
 
 info "Installing from ${SCRIPT_DIR} ..."
-"${VENV_BIN}/pip" install "${SCRIPT_DIR}[systemd]" --quiet
+"${VENV_BIN}/pip" install "${SCRIPT_DIR}" --quiet
 ok "dpmb installed: $(${VENV_BIN}/dpmb --version 2>/dev/null || echo 'package ready')"
 
 # ============================================================================
