@@ -208,6 +208,9 @@ info "Installing from ${SCRIPT_DIR} ..."
 "${VENV_BIN}/pip" install "${SCRIPT_DIR}" --quiet
 ok "dpmb installed: $(${VENV_BIN}/dpmb --version 2>/dev/null || echo 'package ready')"
 
+# Clean up root-owned build artifacts so user can manage their clone
+rm -rf "${SCRIPT_DIR}/build" "${SCRIPT_DIR}/src/"*.egg-info 2>/dev/null || true
+
 # ============================================================================
 # Step 6: Create system directories
 # ============================================================================
@@ -265,14 +268,14 @@ else
 fi
 
 # ============================================================================
-# Step 9: Interactive configuration (dpmb init)
+# Step 9: Auto-configure (dpmb init --auto)
 # ============================================================================
-header "Running interactive configuration"
+header "Configuring DPMB"
 
-info "Launching 'dpmb init' for interface and webhook setup..."
+info "Auto-detecting interface and writing config..."
 printf "\n"
 
-"${VENV_BIN}/dpmb" init
+"${VENV_BIN}/dpmb" init --auto
 
 printf "\n"
 ok "Configuration complete."

@@ -197,8 +197,9 @@ def log_export(ctx, fmt, output):
 # --- Standalone commands (stubs wired in later phases) ---
 
 @cli.command()
+@click.option("--auto", "auto_mode", is_flag=True, help="Non-interactive mode — use auto-detected defaults")
 @click.pass_context
-def init(ctx):
+def init(ctx, auto_mode):
     """First-time setup — create config, database, and systemd service."""
     import socket
     from pathlib import Path
@@ -216,10 +217,15 @@ def init(ctx):
         click.echo("No wireless interfaces detected (plug in adapter later).")
         default_iface = ""
 
-    # Prompt for configuration values
-    wifi_interface = click.prompt("WiFi interface name (blank for auto-detect)", default=default_iface)
-    webhook_url = click.prompt("Webhook URL for alerts")
-    device_name = click.prompt("Device name", default=socket.gethostname())
+    if auto_mode:
+        wifi_interface = default_iface
+        webhook_url = ""
+        device_name = socket.gethostname()
+        click.echo(f"Auto mode: interface={wifi_interface or '(auto-detect)'}, device={device_name}")
+    else:
+        wifi_interface = click.prompt("WiFi interface name (blank for auto-detect)", default=default_iface)
+        webhook_url = click.prompt("Webhook URL for alerts (blank to skip)", default="")
+        device_name = click.prompt("Device name", default=socket.gethostname())
 
     # Write config file
     config_dir = Path("/etc/dpmb")
