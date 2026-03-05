@@ -24,8 +24,7 @@ class Config:
         """Return list of validation errors, empty if valid."""
         errors = []
         # wifi_interface is optional — auto-discovery will find one at runtime
-        if not self.webhook_url:
-            errors.append("webhook_url is required")
+        # webhook_url is optional — notifications configured via dashboard settings
         if self.webhook_url and not self.webhook_url.startswith(("http://", "https://")):
             errors.append("webhook_url must start with http:// or https://")
         if self.scan_interval_sec < 1 or self.scan_interval_sec > 300:
