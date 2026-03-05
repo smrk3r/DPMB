@@ -41,15 +41,13 @@ fi
 ok "Running as root."
 
 # ============================================================================
-# Step 2: Check prerequisites
+# Step 2: Install / verify prerequisites
 # ============================================================================
-header "Checking prerequisites"
+header "Installing prerequisites"
 
-# -- python3 --
-if ! command -v python3 &>/dev/null; then
-    fail "python3 not found. Install Python 3.11+ and re-run."
-fi
+bash "${SCRIPT_DIR}/prerequisites.sh"
 
+# Final gate — verify Python version
 PYTHON_VERSION="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
 PYTHON_MAJOR="${PYTHON_VERSION%%.*}"
 PYTHON_MINOR="${PYTHON_VERSION##*.}"
@@ -57,33 +55,7 @@ PYTHON_MINOR="${PYTHON_VERSION##*.}"
 if [[ "$PYTHON_MAJOR" -lt 3 ]] || { [[ "$PYTHON_MAJOR" -eq 3 ]] && [[ "$PYTHON_MINOR" -lt 11 ]]; }; then
     fail "Python >= 3.11 required (found $PYTHON_VERSION)."
 fi
-ok "python3 $PYTHON_VERSION"
-
-# -- pip --
-if ! python3 -m pip --version &>/dev/null; then
-    fail "pip not available. Install python3-pip and re-run."
-fi
-ok "pip $(python3 -m pip --version | awk '{print $2}')"
-
-# -- python3-venv --
-if ! python3 -m venv --help &>/dev/null; then
-    fail "python3-venv not available. Install python3-venv and re-run."
-fi
-ok "python3-venv available"
-
-# -- iw --
-if ! command -v iw &>/dev/null; then
-    fail "iw not found. Install iw (apt install iw) and re-run."
-fi
-ok "iw $(iw --version 2>/dev/null | awk '{print $NF}' || echo 'present')"
-
-# -- python3-systemd (for sd_notify) --
-if python3 -c "import systemd.daemon" &>/dev/null; then
-    ok "python3-systemd available"
-else
-    info "Installing python3-systemd for systemd integration..."
-    apt-get install -y python3-systemd &>/dev/null || warn "python3-systemd not available — sd_notify will be skipped."
-fi
+ok "All prerequisites satisfied."
 
 # ============================================================================
 # Step 3: Detect monitor-mode capable WiFi interfaces
